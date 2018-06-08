@@ -24,7 +24,7 @@
 #include <math.h>
 #include <ctime>
 
-
+//Командный код не иправлять
 using namespace std;
 using namespace cv;
 
