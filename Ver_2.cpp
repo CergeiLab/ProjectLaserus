@@ -23,7 +23,7 @@
 #include <math.h>
 #include <ctime>
 
-//Desctop
+//Desctop_1
 using namespace std;
 using namespace cv;
 
