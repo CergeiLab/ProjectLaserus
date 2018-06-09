@@ -10,7 +10,6 @@
 #include <opencv\cxmisc.h>
 #include <opencv\cvaux.h>
 
-
 #include <WinSock2.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,25 +23,43 @@
 #include <math.h>
 #include <ctime>
 
-//Командный код не иправлять
+//Desctop_1
 using namespace std;
 using namespace cv;
 
 #define CAM 0
-double PI = 3.141592653589793238462643383279;
+//double PI = 3.141592653589793238462643383279;
 double D;
 double h;
-double Theta;
 double pfc;
-double rpc;
-double ro;
-
-void res_dist(double& _D, double& _h, double& _theta, double& _pcf, double& _rpc, double& _ro)
+void res_dist(double& _D, double& _h, double& _pcf)
 {
-	_theta = _rpc*_pcf + _ro;
-	double thet = (atan(_theta)* 180.0) / PI;//В градусах
-	_D = _h / thet;
+	double x[8] = { 180, 160, 140, 120, 100, 80, 60, 40 };//сантиметры
+	double y[8] = { 9, 15, 21, 31, 43, 62, 93, 157 };//пиксели
+	double AY[8];
+	double Theta;
+	//double D;
+	int i;
+	double a, b;
 
+	for (int j = 0; j<8; j++)
+	{
+		AY[j] = atan(_h / x[j]);
+
+	}
+
+	i = 0;
+	while (i < 8 && y[i] <= y[7])//подправить условия для реальных измерений
+	{
+		i++;
+
+		a = (AY[i - 1] - AY[i]) / (y[i - 1] - y[i]);
+		b = AY[i - 1] - a*y[i - 1];
+
+		Theta = a*_pcf + b;
+		_D = _h / tan(Theta);
+		cout << "X: " << _pcf << " Y: " << Theta << " i: " << i << " Range:" << _D << endl;
+	}
 
 }
 
@@ -59,7 +76,8 @@ Mat img, hsvChannels[3], bHist, gHist, rHist, HistImg;
 int Hl_Mask, Sl_Mask, Vl_Mask,
 Hh_Mask, Sh_Mask, Vh_Mask, Bl_Mask, Bh_Mask;
 
-int pix, x, R_pix;
+int pix, x;
+double R_pix;
 int pix_1;
 int roi = 130;
 
@@ -94,38 +112,38 @@ int main()
 		/*if (Histogramm)
 		{
 
-			int kBins = 256;
-			float range[] = { 0.0f, 256.0f };
-			const float* histRange = { range };
+		int kBins = 256;
+		float range[] = { 0.0f, 256.0f };
+		const float* histRange = { range };
 
-			bool unform = true;
-			bool accumulate = false;
+		bool unform = true;
+		bool accumulate = false;
 
-			int histWidth = 512, histHeight = 400;
-			int binWidth = cvRound((double)histWidth / kBins);
-			int i = 1, kChannels = 3;
-			Scalar colors[] = { Scalar(255,0,0),Scalar(0,255,0),Scalar(0,0,255) };
+		int histWidth = 512, histHeight = 400;
+		int binWidth = cvRound((double)histWidth / kBins);
+		int i = 1, kChannels = 3;
+		Scalar colors[] = { Scalar(255,0,0),Scalar(0,255,0),Scalar(0,0,255) };
 
-			img = frame_HSV;
-			split(img, hsvChannels);
-			calcHist(&hsvChannels[0], 1, 0, Mat(), bHist, 1, &kBins, &histRange, unform, accumulate);
-			calcHist(&hsvChannels[1], 1, 0, Mat(), gHist, 1, &kBins, &histRange, unform, accumulate);
-			calcHist(&hsvChannels[2], 1, 0, Mat(), rHist, 1, &kBins, &histRange, unform, accumulate);
+		img = frame_HSV;
+		split(img, hsvChannels);
+		calcHist(&hsvChannels[0], 1, 0, Mat(), bHist, 1, &kBins, &histRange, unform, accumulate);
+		calcHist(&hsvChannels[1], 1, 0, Mat(), gHist, 1, &kBins, &histRange, unform, accumulate);
+		calcHist(&hsvChannels[2], 1, 0, Mat(), rHist, 1, &kBins, &histRange, unform, accumulate);
 
-			HistImg = Mat(histHeight, histWidth, CV_8UC3, Scalar(0, 0, 0));
+		HistImg = Mat(histHeight, histWidth, CV_8UC3, Scalar(0, 0, 0));
 
-			normalize(bHist, bHist, 0, HistImg.rows, NORM_MINMAX, -1, Mat());
-			normalize(gHist, gHist, 0, HistImg.rows, NORM_MINMAX, -1, Mat());
-			normalize(rHist, rHist, 0, HistImg.rows, NORM_MINMAX, -1, Mat());
+		normalize(bHist, bHist, 0, HistImg.rows, NORM_MINMAX, -1, Mat());
+		normalize(gHist, gHist, 0, HistImg.rows, NORM_MINMAX, -1, Mat());
+		normalize(rHist, rHist, 0, HistImg.rows, NORM_MINMAX, -1, Mat());
 
-			for (i; i < kBins; i++)
-			{
-				line(HistImg, Point(binWidth*(i - 1), histHeight - cvRound(bHist.at<float>(i - 1))), Point(binWidth*i, histHeight - cvRound(bHist.at<float>(i))), colors[0], 2, 8, 0);
-				line(HistImg, Point(binWidth*(i - 1), histHeight - cvRound(gHist.at<float>(i - 1))), Point(binWidth*i, histHeight - cvRound(gHist.at<float>(i))), colors[1], 2, 8, 0);
-				line(HistImg, Point(binWidth*(i - 1), histHeight - cvRound(rHist.at<float>(i - 1))), Point(binWidth*i, histHeight - cvRound(rHist.at<float>(i))), colors[2], 2, 8, 0);
+		for (i; i < kBins; i++)
+		{
+		line(HistImg, Point(binWidth*(i - 1), histHeight - cvRound(bHist.at<float>(i - 1))), Point(binWidth*i, histHeight - cvRound(bHist.at<float>(i))), colors[0], 2, 8, 0);
+		line(HistImg, Point(binWidth*(i - 1), histHeight - cvRound(gHist.at<float>(i - 1))), Point(binWidth*i, histHeight - cvRound(gHist.at<float>(i))), colors[1], 2, 8, 0);
+		line(HistImg, Point(binWidth*(i - 1), histHeight - cvRound(rHist.at<float>(i - 1))), Point(binWidth*i, histHeight - cvRound(rHist.at<float>(i))), colors[2], 2, 8, 0);
 
 
-			}
+		}
 
 
 		}*/
@@ -145,7 +163,7 @@ int main()
 			int i = 1, kChannels = 1;
 			Scalar colors[] = { Scalar(255,0,255) };
 			//*
-			
+
 			//*
 			img = frame_HSV;
 			split(img, hsvChannels);
@@ -169,11 +187,11 @@ int main()
 		int w = rHist.cols;
 		for (int x = 0; x < h; x++)
 		{
-			for (int y = 0; y < w; y++)
-			{
-				pix1 = (float)rHist.at<float>(x, y);
-				cout << "Y: " << y << "X: " << x << " (" << pix1 << ")" << endl;
-			}
+		for (int y = 0; y < w; y++)
+		{
+		pix1 = (float)rHist.at<float>(x, y);
+		cout << "Y: " << y << "X: " << x << " (" << pix1 << ")" << endl;
+		}
 		}*/
 		//***
 		if (FindColorMask)
@@ -253,15 +271,17 @@ int main()
 					x = All_Roi_mask.at<uchar>(i, j);
 					if (x >= 200) // искомое значение пикселя
 					{
-						if (j < (All_Roi_mask.cols/ 2))
+						if (j < (All_Roi_mask.cols / 2))
 						{
 							R_pix = (All_Roi_mask.cols / 2) - j;
+							//res_dist(D, h, R_pix);//передача пикселей в расчет
 
 							cout << "От центра<<: " << R_pix << endl;
 						}
-						if (j > (All_Roi_mask.cols / 2))
+						if (j >(All_Roi_mask.cols / 2))
 						{
 							R_pix = j - (All_Roi_mask.cols / 2);
+							//res_dist(D,h,R_pix);//передача пикселей в расчет
 
 							cout << "От центра>>: " << R_pix << endl;
 						}
@@ -273,59 +293,59 @@ int main()
 		}
 
 
-			cvNamedWindow("RAW", CV_WINDOW_FREERATIO);
-			cv::imshow("RAW", frame_HSV);
+		cvNamedWindow("RAW", CV_WINDOW_FREERATIO);
+		cv::imshow("RAW", frame_HSV);
 
-			cvNamedWindow("HSV to GRAY", CV_WINDOW_FREERATIO);
-			cv::imshow("HSV to GRAY", hsvChannels[2]);
+		cvNamedWindow("HSV to GRAY", CV_WINDOW_FREERATIO);
+		cv::imshow("HSV to GRAY", hsvChannels[2]);
 
-			//cvNamedWindow("hsvChannels[1]", CV_WINDOW_FREERATIO);
-			//cv::imshow("hsvChannels[1]", hsvChannels[1]);
+		//cvNamedWindow("hsvChannels[1]", CV_WINDOW_FREERATIO);
+		//cv::imshow("hsvChannels[1]", hsvChannels[1]);
 
-			//cvNamedWindow("hsvChannels[0]", CV_WINDOW_FREERATIO);
-			//cv::imshow("hsvChannels[0]", hsvChannels[0]);
+		//cvNamedWindow("hsvChannels[0]", CV_WINDOW_FREERATIO);
+		//cv::imshow("hsvChannels[0]", hsvChannels[0]);
 
-			cvNamedWindow("All_Roi_mask", CV_WINDOW_FREERATIO);
-			cv::imshow("All_Roi_mask", All_Roi_mask);
+		cvNamedWindow("All_Roi_mask", CV_WINDOW_FREERATIO);
+		cv::imshow("All_Roi_mask", All_Roi_mask);
 
-			//cvNamedWindow("Bright", CV_WINDOW_FREERATIO);
-			//cv::imshow("Bright", frame_mask2);
+		//cvNamedWindow("Bright", CV_WINDOW_FREERATIO);
+		//cv::imshow("Bright", frame_mask2);
 
-			if (FindColorMask)
-			{
-				cvNamedWindow("MASK", CV_WINDOW_FREERATIO);
-				cv::imshow("MASK", frame_mask);
-			}
+		if (FindColorMask)
+		{
+			cvNamedWindow("MASK", CV_WINDOW_FREERATIO);
+			cv::imshow("MASK", frame_mask);
+		}
 
-			if (Histogramm)
-			{
-				cvNamedWindow("Histogramm", CV_WINDOW_FREERATIO);
-				cv::imshow("Histogramm", HistImg);
+		if (Histogramm)
+		{
+			cvNamedWindow("Histogramm", CV_WINDOW_FREERATIO);
+			cv::imshow("Histogramm", HistImg);
 
-			}
+		}
 
-			if (Histogramm_1CHANNEL)
-			{
-				cvNamedWindow("Histogramm", CV_WINDOW_FREERATIO);
-				cv::imshow("Histogramm", HistImg);
-			}
+		if (Histogramm_1CHANNEL)
+		{
+			cvNamedWindow("Histogramm", CV_WINDOW_FREERATIO);
+			cv::imshow("Histogramm", HistImg);
+		}
 
-			if (MSK_2)
-			{
-				cvNamedWindow("Line", CV_WINDOW_FREERATIO);
-				cv::imshow("Line", Line);
-			}
+		if (MSK_2)
+		{
+			cvNamedWindow("Line", CV_WINDOW_FREERATIO);
+			cv::imshow("Line", Line);
+		}
 
-			//rows = frame_mask.rows;
-			//cols = frame_mask.cols;
-			//cout << rows << " " << cols << endl;
-			if (c == 27)
-			{
-				break;
-			}
+		//rows = frame_mask.rows;
+		//cols = frame_mask.cols;
+		//cout << rows << " " << cols << endl;
+		if (c == 27)
+		{
+			break;
+		}
 
 
-		
+
 	}
 
 	//end_time = clock();
