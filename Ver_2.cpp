@@ -76,12 +76,12 @@ Mat img, hsvChannels[3], bHist, gHist, rHist, HistImg;
 int Hl_Mask, Sl_Mask, Vl_Mask,
 Hh_Mask, Sh_Mask, Vh_Mask, Bl_Mask, Bh_Mask;
 
-int pix, x;
+int pix, x, XZ = 200;
 double R_pix;
 int pix_1;
-int roi = 130;
+int roi = 233;
 
-int Hl1 = 123, Sl1 = 0, Vl1 = 86, Hh1 = 360, Sh1 = 255, Vh1 = 255, Bl1 = 0, Bh1 = 0;//int Hl1 = 126, Sl1 = 0, Vl1 = 203, Hh1 = 255, Sh1 = 255, Vh1 = 255;
+int Hl1 = 136, Sl1 = 154, Vl1 = 169, Hh1 = 255, Sh1 = 255, Vh1 = 255, Bl1 = 0, Bh1 = 0;//int Hl1 = 126, Sl1 = 0, Vl1 = 203, Hh1 = 255, Sh1 = 255, Vh1 = 255;
 
 int main()
 {
@@ -103,10 +103,10 @@ int main()
 
 		//cap >> frame;
 
-		frame = cv::imread("8.jpg", CV_LOAD_IMAGE_COLOR);
+		frame = cv::imread("208.png", CV_LOAD_IMAGE_COLOR);
 
 
-		cvtColor(frame, frame_HSV, CV_BGR2HSV);
+		cvtColor(frame, frame_HSV, CV_BGR2RGB);
 		//cvtColor(frame, frame_GRAY, CV_BGR2GRAY);
 
 		/*if (Histogramm)
@@ -205,7 +205,7 @@ int main()
 			int Vh = cvCreateTrackbar("V_hight", "HSV Tune", &Vh1, 255, NULL);
 
 			int Bl = cvCreateTrackbar("Brigth_low", "HSV Tune", &roi, 255, NULL);
-			int Bh = cvCreateTrackbar("Brigth_hight", "HSV Tune", &roi, 255, NULL);
+			int Bh = cvCreateTrackbar("Brigth_hight", "HSV Tune", &XZ, 255, NULL);
 
 			inRange(frame_HSV, Scalar(Hl1, Sl1, Vl1), Scalar(Hh1, Sh1, Vh1), frame_mask);
 			//inRange(hsvChannels[2], Scalar(Bl1), Scalar(Bh1), frame_mask2);
@@ -269,22 +269,28 @@ int main()
 				for (int j = 0; j < All_Roi_mask.cols; j++)
 				{
 					x = All_Roi_mask.at<uchar>(i, j);
-					if (x >= 200) // искомое значение пикселя
+					if (x >= XZ) // искомое значение пикселя
 					{
 						if (j < (All_Roi_mask.cols / 2))
 						{
 							R_pix = (All_Roi_mask.cols / 2) - j;
 							//res_dist(D, h, R_pix);//передача пикселей в расчет
-
-							cout << "От центра<<: " << R_pix << endl;
+							if (i == 360)
+							{
+								cout << "От центра<<: " << R_pix << " Порядок пикселя: " << j << endl;
+							}
+							
 						}
-						if (j >(All_Roi_mask.cols / 2))
+						/*if (j >(All_Roi_mask.cols / 2))
 						{
 							R_pix = j - (All_Roi_mask.cols / 2);
 							//res_dist(D,h,R_pix);//передача пикселей в расчет
-
-							cout << "От центра>>: " << R_pix << endl;
-						}
+							if (i == 360)
+							{
+								cout << "От центра>>: " << R_pix << endl;
+							}
+							
+						}*/
 					}
 				}
 			}
