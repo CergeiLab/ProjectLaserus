@@ -34,8 +34,8 @@ double h;
 double pfc;
 void res_dist(double& _D, double& _h, double& _pcf)
 {
-	double x[8] = {};//сантиметры
-	double y[8] = {};//пиксели
+	double x[8] = { 180, 160, 140, 120, 100, 80, 60, 40 };//сантиметры
+	double y[8] = { 9, 15, 21, 31, 43, 62, 93, 157 };//пиксели
 	double AY[8];
 	double Theta;
 	//double D;
@@ -103,7 +103,7 @@ int main()
 
 		//cap >> frame;
 
-		frame = cv::imread("48.png", CV_LOAD_IMAGE_COLOR);
+		frame = cv::imread("208.png", CV_LOAD_IMAGE_COLOR);
 
 
 		cvtColor(frame, frame_HSV, CV_BGR2RGB);
@@ -277,7 +277,7 @@ int main()
 							//res_dist(D, h, R_pix);//передача пикселей в расчет
 							if (i == 360)
 							{
-								//cout << "От центра<<: " << R_pix << " Порядок пикселя: " << j << endl;
+								cout << "От центра<<: " << R_pix << " Порядок пикселя: " << j << endl;
 							}
 							
 						}
